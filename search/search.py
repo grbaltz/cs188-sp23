@@ -87,6 +87,45 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    path = []
+    pathDir = []
+    directions = util.Stack()
+    reached = util.Stack()
+    #reached.push(problem.getStartState())
+    for succ in problem.getSuccessors(problem.getStartState()):
+        reached.push(succ[0])
+        directions.push(succ[1])
+    print(problem.getStartState())
+
+    while reached:
+        # get top of reached
+        # check if already in the path (removed regardless)
+        space = reached.pop()
+        dir = directions.pop()
+        if problem.isGoalState(space):
+            # if it isn't, add it to the path so it won't be repeated
+            path.append(space)
+            pathDir.append(dir)
+            print(pathDir)
+            return pathDir
+
+        # since it's not the goal state, we need to check if it's already in our path
+        # and if it is, we don't want to keep it
+        #print(space, "   ", path)
+        if space in path:
+            continue
+
+        print(space, dir)
+        # if it isn't, add it to the path so it won't be repeated
+        path.append(space)
+        pathDir.append(dir)
+
+        # add all successors to reached so they can be traversed in the next iteration
+        for successor in problem.getSuccessors(space):
+            #sprint(successor)
+            reached.push(successor[0])
+            directions.push(successor[1])
+
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem: SearchProblem):
