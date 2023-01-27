@@ -87,46 +87,70 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    states = []
     path = []
-    pathDir = []
-    directions = util.Stack()
-    reached = util.Stack()
-    #reached.push(problem.getStartState())
-    for succ in problem.getSuccessors(problem.getStartState()):
-        reached.push(succ[0])
-        directions.push(succ[1])
-    print(problem.getStartState())
+    fringe = util.Stack()
+    fringe.push((problem.getStartState(), [], 0))
 
-    while reached:
-        # get top of reached
-        # check if already in the path (removed regardless)
-        space = reached.pop()
-        dir = directions.pop()
-        if problem.isGoalState(space):
-            # if it isn't, add it to the path so it won't be repeated
-            path.append(space)
-            pathDir.append(dir)
-            print(pathDir)
-            return pathDir
+    while not fringe.isEmpty():
+        state, action, cost = fringe.pop()
+        if problem.isGoalState(state):
+            # return the path to said goal
+            print("path = ", path)
+            return path
 
-        # since it's not the goal state, we need to check if it's already in our path
-        # and if it is, we don't want to keep it
-        #print(space, "   ", path)
-        if space in path:
-            continue
+        if state not in states:
+            states.append(state)
+            print(action)
+            path += action
+            for successor in problem.getSuccessors(state):
+                print(successor)
+                fringe.push(successor)
 
-        print(space, dir)
-        # if it isn't, add it to the path so it won't be repeated
-        path.append(space)
-        pathDir.append(dir)
 
-        # add all successors to reached so they can be traversed in the next iteration
-        for successor in problem.getSuccessors(space):
-            #sprint(successor)
-            reached.push(successor[0])
-            directions.push(successor[1])
-
-    util.raiseNotDefined()
+    return None
+    # path = util.Stack()
+    # pathDir = util.Stack()
+    # reached = [problem.getStartState()] # needs to store states as tuples with different directions cause loops
+    #
+    # # current node, popped from the top of path
+    # path.push(problem.getStartState())
+    # pathDir.push('Start')
+    #
+    # # check if top of path has unreached successors
+    # # if so, replace top of path, add first unreached successor to path and to reached, repeat
+    # while True:
+    #     curr = path.pop()
+    #     dir = pathDir.pop()
+    #     #print("curr = ", curr)
+    #
+    #     if problem.isGoalState(curr):
+    #         path.push(curr)
+    #         pathDir.push(dir)
+    #         break
+    #
+    #     for successor in problem.getSuccessors(curr):
+    #         #print(successor[0])
+    #         if successor[0] not in reached:
+    #             path.push(curr)
+    #             pathDir.push(dir)
+    #             path.push(successor[0])
+    #             pathDir.push(successor[1])
+    #             reached.append(successor[0])
+    #             #print("reached = ", reached, "\n")
+    #             break
+    #         #print(successor[0], " has been reached already")
+    #
+    # result = []
+    #
+    # # Code here to create list of actions from queue backwards
+    # temp = pathDir.pop()
+    # while temp is not 'Start':
+    #     result.append(temp)
+    #     temp = pathDir.pop()
+    #
+    # print(result[::-1])
+    # return result[::-1]
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
