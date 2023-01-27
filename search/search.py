@@ -87,28 +87,63 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    states = []
-    path = []
+    reached = []
     fringe = util.Stack()
     fringe.push((problem.getStartState(), [], 0))
 
     while not fringe.isEmpty():
         state, action, cost = fringe.pop()
+
         if problem.isGoalState(state):
-            # return the path to said goal
-            print("path = ", path)
-            return path
+            return action
 
-        if state not in states:
-            states.append(state)
-            print(action)
-            path += action
+        if state not in reached:
+            reached.append(state)
+
             for successor in problem.getSuccessors(state):
-                print(successor)
-                fringe.push(successor)
+                fringe.push((successor[0], action + [successor[1]], cost + successor[2]))
 
+    # TAKE 2: DOES NOT WORK
+    # states = []
+    # savedTuple = list(((None, None), [], 0))
+    # fringe = util.Stack()
+    # fringe.push((problem.getStartState(), None, 0))
+    #
+    # while not fringe.isEmpty():
+    # #for i in range(5):
+    #     state, action, cost = fringe.pop()
+    #     #print("state = ", state, " action = ", action, " cost = ", cost)
+    #     #print("Current state is ", savedTuple[0], "\nPopped state is ", state)
+    #     if problem.isGoalState(state):
+    #         # return the path to said goal
+    #         savedTuple[0] = state
+    #         savedTuple[1].append(action)
+    #
+    #         print("path = ", savedTuple[1])
+    #         return savedTuple[1]
+    #
+    #     if state not in states:
+    #         states.append(state)
+    #
+    #         print("savedTuple[0] = ", savedTuple[0], " | state = ", state)
+    #
+    #         savedTuple[0] = state
+    #
+    #         print("POST ASSIGNMENT:\nsavedTuple[0] = ", savedTuple[0], " | state = ", state)
+    #
+    #         if action is not None:
+    #             savedTuple[1].append(action)
+    #
+    #         print("savedTuple = ", savedTuple, "  action = ", action, "\n")
+    #
+    #         for successor in problem.getSuccessors(state):
+    #             print(successor)
+    #             fringe.push(successor)
+    #
+    # return None
 
-    return None
+    # TAKE 1: WORKS BUT NOT FOR AUTOGRADER
+    #
     # path = util.Stack()
     # pathDir = util.Stack()
     # reached = [problem.getStartState()] # needs to store states as tuples with different directions cause loops
@@ -155,6 +190,25 @@ def depthFirstSearch(problem: SearchProblem):
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    reached = []
+    fringe = util.Queue()
+    fringe.push((problem.getStartState(), [], 0))
+
+    while not fringe.isEmpty():
+        state, action, cost = fringe.pop()
+
+        if problem.isGoalState(state):
+            return action
+
+        if state not in reached:
+            reached.append(state)
+
+            for successor in problem.getSuccessors(state):
+                fringe.push((successor[0], action + [successor[1]], cost + successor[2]))
+
+
+
+
     util.raiseNotDefined()
 
 def uniformCostSearch(problem: SearchProblem):
