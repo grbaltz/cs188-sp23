@@ -194,6 +194,7 @@ def breadthFirstSearch(problem: SearchProblem):
 
     while not fringe.isEmpty():
         state, action, cost = fringe.pop()
+        #print(state, action, cost)
 
         if problem.isGoalState(state):
             return action
