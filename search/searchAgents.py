@@ -502,7 +502,43 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+
+    """
+    Possible ideas:
+    
+    - Simply the closest food using mazedistance
+    - Food clusters? 
+    """
+    result = 0
+    x, y = position
+
+    # get amount of food pellets within like a 1 move range
+    range = 3
+    foodDistancesWithinRange = []
+    for pellet in foodGrid.asList():
+        if abs(pellet[0] - x) == range or abs(pellet[1] - y) == range:
+            foodDistancesWithinRange.append(mazeDistance(position, pellet, problem.startingGameState))
+
+    pelletsInRange = len(foodDistancesWithinRange)
+    #result += pelletsInRange
+
+    # possibly add farthest pellet within range?
+    # if pelletsInRange != 0:
+    #      result += max(foodDistancesWithinRange)
+
+    # add amount of food pellets left (should be marginal)
+    if len(foodGrid.asList()) != 0:
+        result += len(foodGrid.asList())
+
+    # farthest pellet
+    foodDistances = []
+    for pellet in foodGrid.asList():
+        foodDistances.append(mazeDistance(position, pellet, problem.startingGameState))
+
+    if len(foodDistances) != 0:
+        result += min(foodDistances)
+
+    return result
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
