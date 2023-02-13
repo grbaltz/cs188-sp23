@@ -123,7 +123,7 @@ def findModelUnderstandingCheck() -> Dict[Expr, bool]:
     """
     a = Expr('A')
     "*** BEGIN YOUR CODE HERE ***"
-    print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
+    #print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
     a.__dict__['op'] = 'a'
     fixed = {a: True}
     return fixed
@@ -133,9 +133,11 @@ def entails(premise: Expr, conclusion: Expr) -> bool:
     """Returns True if the premise entails the conclusion and False otherwise.
     """
     "*** BEGIN YOUR CODE HERE ***"
-    # If every argument of the conclusion that the premise shares are True, then return True
-    print(conjoin([premise, conclusion]))
-    return conjoin([premise, conclusion])
+
+    # if not findModel(premise) or not findModel(conclusion):
+    #     return False
+
+    return not findModel(conjoin([premise, ~conclusion]))
     "*** END YOUR CODE HERE ***"
 
 def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> bool:
@@ -143,7 +145,7 @@ def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> boo
     pl_true may be useful here; see logic.py for its description.
     """
     "*** BEGIN YOUR CODE HERE ***"
-    print('nothing yet')
+    return not pl_true(inverse_statement, assignments)
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
