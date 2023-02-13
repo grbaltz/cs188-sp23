@@ -234,7 +234,21 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
         return None
     
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # generate the expression that had to have been true for pacman to be at current (x, y)
+    # for each direction, check the pos that would have been and if it is a wall
+    # then generate the expression stating the direction taken and the respective pos
+    result = []
+    current = PropSymbolExpr(pacman_str, x, y, time=now)
+    
+    for direction in DIRECTIONS:
+        dx, dy = DIR_TO_DXDY_MAP[direction]
+        is_wall = walls_grid[x + dx][y + dy]
+        clause = PropSymbolExpr(direction, time=last) & ~is_wall
+        result.append(clause)
+
+    return current % disjoin(result)
+    
+    # return current % prev_position_not_wall & direction
     "*** END YOUR CODE HERE ***"
 
 
@@ -305,7 +319,7 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
     pacphysics_sentences = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return Expr('A')
     "*** END YOUR CODE HERE ***"
 
     return conjoin(pacphysics_sentences)
@@ -339,7 +353,7 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
     KB.append(conjoin(map_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return (x0_y0, x1_y1)
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
