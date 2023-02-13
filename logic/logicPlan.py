@@ -171,7 +171,7 @@ def atLeastOne(literals: List[Expr]) -> Expr:
     True
     """
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return disjoin(literals)
     "*** END YOUR CODE HERE ***"
 
 
@@ -183,7 +183,14 @@ def atMostOne(literals: List[Expr]) -> Expr:
     itertools.combinations may be useful here.
     """
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    result = []
+
+    # for each combination of 2, ensure there are no combos that &-ed together are True
+    for x, y in itertools.combinations(literals, 2):
+        combo_2 = (~x | ~y)
+        result.append(combo_2)
+
+    return conjoin(result)
     "*** END YOUR CODE HERE ***"
 
 
@@ -194,7 +201,16 @@ def exactlyOne(literals: List[Expr]) -> Expr:
     the expressions in the list is true.
     """
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    result = []
+    
+    for x, y in itertools.combinations(literals, 2):
+        combo_1 = (x | y)
+        combo_2 = ~(x & y)
+        result.append(combo_1)
+        result.append(combo_2)
+
+    print(conjoin(result))
+    return conjoin(result)
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
