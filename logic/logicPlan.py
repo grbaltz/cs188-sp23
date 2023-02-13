@@ -201,16 +201,7 @@ def exactlyOne(literals: List[Expr]) -> Expr:
     the expressions in the list is true.
     """
     "*** BEGIN YOUR CODE HERE ***"
-    result = []
-    
-    for x, y in itertools.combinations(literals, 2):
-        combo_1 = (x | y)
-        combo_2 = ~(x & y)
-        result.append(combo_1)
-        result.append(combo_2)
-
-    print(conjoin(result))
-    return conjoin(result)
+    return atLeastOne(literals) & atMostOne(literals)
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
