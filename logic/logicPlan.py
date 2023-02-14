@@ -320,7 +320,7 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
     # get every coordinate that pacman could be in and use exactlyOne to verify he's only in one
     temp = []
     for x, y in non_outer_wall_coords:
-        print(t, x, y)
+        #print(t, x, y)
         temp.append(PropSymbolExpr(pacman_str, x, y, time=t))
     pacphysics_sentences.append(exactlyOne(temp))
 
@@ -375,15 +375,26 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
 
     good_entails = entails(conjoin(KB), PropSymbolExpr(pacman_str, x1, y1, time=1))
     bad_entails = entails(conjoin(KB), ~PropSymbolExpr(pacman_str, x1, y1, time=1))
+
+    
     
     if good_entails:
-        print(good_entails)
-        print(findModel(conjoin(KB) + PropSymbolExpr(pacman_str, x1, y1, time=1)))
-        return (findModel(good_entails), False)
+        print("option 1")
+        
+
+        KB.append(PropSymbolExpr(pacman_str, x1, y1, time=1))
+        goods = conjoin(KB)
+        print((findModel(goods), False))
+        return (findModel(goods), False)
         
     if bad_entails:
         print("option 2")
-        return findModel(False, (bad_entails))
+        
+
+        KB.append(~PropSymbolExpr(pacman_str, x1, y1, time=1))
+        bads = conjoin(KB)
+        print((False, findModel(bads)))
+        return (False, findModel(bads))
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
