@@ -237,16 +237,9 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
     # generate the expression that had to have been true for pacman to be at current (x, y)
     # for each direction, check the pos that would have been and if it is a wall
     # then generate the expression stating the direction taken and the respective pos
-    result = []
     current = PropSymbolExpr(pacman_str, x, y, time=now)
-    
-    for direction in DIRECTIONS:
-        dx, dy = DIR_TO_DXDY_MAP[direction]
-        is_wall = walls_grid[x + dx][y + dy]
-        clause = PropSymbolExpr(direction, time=last) & ~is_wall
-        result.append(clause)
 
-    return current % disjoin(result)
+    return PropSymbolExpr(pacman_str, x, y, time=time)%disjoin(possible_causes)
     
     # return current % prev_position_not_wall & direction
     "*** END YOUR CODE HERE ***"
@@ -319,10 +312,32 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
     pacphysics_sentences = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    return Expr('A')
-    "*** END YOUR CODE HERE ***"
+
+    # for every wall in all_coords, pacman is NOT there
+    for x, y in all_coords:
+        pacphysics_sentences.append(PropSymbolExpr(wall_str, x, y)>>~PropSymbolExpr(pacman_str, x, y, time=t))
+
+    # get every coordinate that pacman could be in and use exactlyOne to verify he's only in one
+    temp = []
+    for x, y in non_outer_wall_coords:
+        print(t, x, y)
+        temp.append(PropSymbolExpr(pacman_str, x, y, time=t))
+    pacphysics_sentences.append(exactlyOne(temp))
+
+    # takes exactly one action at time=t
+    temp = []
+    for direction in DIRECTIONS:
+        temp.append(PropSymbolExpr(direction, time=t))
+    pacphysics_sentences.append(exactlyOne(temp))
+
+    if successorAxioms and t !=0:
+        pacphysics_sentences.append(conjoin(successorAxioms(t, walls_grid, non_outer_wall_coords)))
+
+    if sensorModel and sensorModel(t, non_outer_wall_coords):
+        pacphysics_sentences.append(conjoin(sensorModel(t, non_outer_wall_coords)))
 
     return conjoin(pacphysics_sentences)
+    "*** END YOUR CODE HERE ***"
 
 
 def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], action0, action1, problem):
@@ -353,7 +368,22 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
     KB.append(conjoin(map_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    return (x0_y0, x1_y1)
+    # edit the KB to entail location 1 and entail not location 2
+    KB.append(pacphysicsAxioms(t=0, all_coords=all_coords, non_outer_wall_coords=non_outer_wall_coords, walls_grid=walls_grid, sensorModel=None, successorAxioms=None))
+    KB.append(pacphysicsAxioms(t=1, all_coords=all_coords, non_outer_wall_coords=non_outer_wall_coords, walls_grid=walls_grid, sensorModel=None, successorAxioms=allLegalSuccessorAxioms))
+    KB.append(conjoin([PropSymbolExpr(pacman_str, x0, y0, time=0), PropSymbolExpr(action0, time=0), PropSymbolExpr(action1, time=1)]))
+
+    good_entails = entails(conjoin(KB), PropSymbolExpr(pacman_str, x1, y1, time=1))
+    bad_entails = entails(conjoin(KB), ~PropSymbolExpr(pacman_str, x1, y1, time=1))
+    
+    if good_entails:
+        print(good_entails)
+        print(findModel(conjoin(KB) + PropSymbolExpr(pacman_str, x1, y1, time=1)))
+        return (findModel(good_entails), False)
+        
+    if bad_entails:
+        print("option 2")
+        return findModel(False, (bad_entails))
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
