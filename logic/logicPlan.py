@@ -649,18 +649,21 @@ def slam(problem, agent) -> Generator:
     KB.append(~PropSymbolExpr(wall_str, pac_x_0, pac_y_0))
 
     for t in range(agent.num_timesteps):
-        KB.append(pacphysicsAxioms(t=t, all_coords=all_coords, non_outer_wall_coords=non_outer_wall_coords, walls_grid=problem.walls, sensorModel=SLAMSensorAxioms, successorAxioms=SLAMSuccessorAxioms))
+        KB.append(pacphysicsAxioms(t=t, all_coords=all_coords, non_outer_wall_coords=non_outer_wall_coords, walls_grid=known_map, sensorModel=SLAMSensorAxioms, successorAxioms=SLAMSuccessorAxioms))
         KB.append(PropSymbolExpr(agent.actions[t], time=t))
         perceptRules = numAdjWallsPerceptRules(t, agent.getPercepts())
         KB.append(perceptRules)
 
         for x, y in non_outer_wall_coords:
             KB_conjoined = conjoin(KB)
-            if entails(KB_conjoined, PropSymbolExpr(wall_str, x, y)) and not entails(KB_conjoined, ~PropSymbolExpr(wall_str, x, y)):
+
+            temp = entails(KB_conjoined, PropSymbolExpr(wall_str, x, y)) and not entails(KB_conjoined, ~PropSymbolExpr(wall_str, x, y))
+            if temp:
                 KB.append(PropSymbolExpr(wall_str, x, y))
                 known_map[x][y] = 1
 
-            if entails(KB_conjoined, ~PropSymbolExpr(wall_str, x, y)) and not entails(KB_conjoined, PropSymbolExpr(wall_str, x, y)):
+            not_temp = entails(KB_conjoined, ~PropSymbolExpr(wall_str, x, y)) and not entails(KB_conjoined, PropSymbolExpr(wall_str, x, y))
+            if not_temp:
                 KB.append(~PropSymbolExpr(wall_str, x, y))
                 known_map[x][y] = 0
 
@@ -671,10 +674,12 @@ def slam(problem, agent) -> Generator:
             if findModel(conjoin([KB_conjoined, PropSymbolExpr(pacman_str, x, y, time=t)])):
                 possible_locations.append((x, y))
 
-            if entails(KB_conjoined, PropSymbolExpr(pacman_str, x, y, time=t)) and not entails(KB_conjoined, ~PropSymbolExpr(pacman_str, x, y, time=t)):
+            temp = entails(KB_conjoined, PropSymbolExpr(pacman_str, x, y, time=t)) and not entails(KB_conjoined, ~PropSymbolExpr(pacman_str, x, y, time=t))
+            if temp:
                 KB.append(PropSymbolExpr(pacman_str, x, y, time=t))
 
-            if entails(KB_conjoined, ~PropSymbolExpr(pacman_str, x, y, time=t)) and not entails(KB_conjoined, PropSymbolExpr(pacman_str, x, y, time=t)):
+            not_temp = entails(KB_conjoined, ~PropSymbolExpr(pacman_str, x, y, time=t)) and not entails(KB_conjoined, PropSymbolExpr(pacman_str, x, y, time=t))
+            if not_temp:
                 KB.append(~PropSymbolExpr(pacman_str, x, y, time=t))
 
         agent.moveToNextState(agent.actions[t])
