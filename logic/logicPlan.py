@@ -234,14 +234,11 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
         return None
     
     "*** BEGIN YOUR CODE HERE ***"
-    # generate the expression that had to have been true for pacman to be at current (x, y)
-    # for each direction, check the pos that would have been and if it is a wall
-    # then generate the expression stating the direction taken and the respective pos
+    # check if current position, then all the possible causes |-ed together should be true as well
+
     current = PropSymbolExpr(pacman_str, x, y, time=now)
 
     return PropSymbolExpr(pacman_str, x, y, time=time)%disjoin(possible_causes)
-    
-    # return current % prev_position_not_wall & direction
     "*** END YOUR CODE HERE ***"
 
 
@@ -376,24 +373,20 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
     good_entails = entails(conjoin(KB), PropSymbolExpr(pacman_str, x1, y1, time=1))
     bad_entails = entails(conjoin(KB), ~PropSymbolExpr(pacman_str, x1, y1, time=1))
 
-    
-    
     if good_entails:
-        print("option 1")
+        #print("option 1")
         
-
         KB.append(PropSymbolExpr(pacman_str, x1, y1, time=1))
         goods = conjoin(KB)
-        print((findModel(goods), False))
+        #print((findModel(goods), False))
         return (findModel(goods), False)
         
     if bad_entails:
-        print("option 2")
+        #print("option 2")
         
-
         KB.append(~PropSymbolExpr(pacman_str, x1, y1, time=1))
         bads = conjoin(KB)
-        print((False, findModel(bads)))
+        #print((False, findModel(bads)))
         return (False, findModel(bads))
     "*** END YOUR CODE HERE ***"
 
@@ -421,7 +414,31 @@ def positionLogicPlan(problem) -> List:
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, time=0))
+
+    for t in range(50):
+        print(t)
+
+        # only at one non_wall_coord
+        temp = []
+        for x, y in non_wall_coords:
+            temp.append(PropSymbolExpr(pacman_str, x, y, time=t))
+        KB.append(exactlyOne(temp))
+
+        # only one direction
+        temp = []
+        for direction in actions:
+            temp.append(PropSymbolExpr(direction, time=t))
+        KB.append(exactlyOne(temp))
+        
+        # add results of successors on each non_wall_coord
+        if t != 0:
+            for x, y in non_wall_coords:
+                KB.append(pacmanSuccessorAxiomSingle(x, y, t, walls_grid=walls_grid))
+
+        # check if it's satisfiable with the goal state, then return the path
+        if findModel(conjoin(KB) & PropSymbolExpr(pacman_str, xg, yg, time=t)):
+            return extractActionSequence(findModel(conjoin(KB) & PropSymbolExpr(pacman_str, xg, yg, time=t)), actions)
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
@@ -450,8 +467,58 @@ def foodLogicPlan(problem) -> List:
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, time=0))
+
+    # initialize that pacman is not in a wall
+    for x, y, in walls_list:
+        for t in range(50):
+            KB.append(~PropSymbolExpr(pacman_str, x, y, time=t))
+
+    # initialize all food given we know it's there
+    for x, y in food:
+        KB.append(PropSymbolExpr(food_str, x, y, time=0))
+
+    for t in range(50):
+        print(t)
+
+        # only at one non_wall_coord
+        temp = []
+        for x, y in non_wall_coords:
+            temp.append(PropSymbolExpr(pacman_str, x, y, time=t))
+        KB.append(exactlyOne(temp))
+
+        # only one direction
+        temp = []
+        for direction in DIRECTIONS:
+            temp.append(PropSymbolExpr(direction, time=t))
+        KB.append(exactlyOne(temp))
+
+        # add results of successors on each non_wall_coord
+        if t > 0:
+            for x, y in non_wall_coords:
+                KB.append(pacmanSuccessorAxiomSingle(x, y, t, walls_grid=walls))
+
+        # make food successor axioms
+        # should be when all the food is eaten
+        no_food_list = []
+        for x, y in food:
+            no_food_list.append(~PropSymbolExpr(food_str, x, y, time=t))
+            KB.append(foodSuccessorAxiomSingleHelper(x, y, time=t))
+
+        # all the combinations of KB and the food_goal
+        KB_conjoined = conjoin(KB)
+        no_food_goal = conjoin(no_food_list)
+        potential_goal = findModel(conjoin([KB_conjoined, no_food_goal]))
+
+        # check if there's a true condition for the goal and if so, return the path with the respective actions
+        if potential_goal:
+            return extractActionSequence(potential_goal, actions)
     "*** END YOUR CODE HERE ***"
+
+def foodSuccessorAxiomSingleHelper(x: int, y: int, time: int) -> Expr:
+    current, next = time, time + 1
+
+    return PropSymbolExpr(food_str, x, y, time=next) % conjoin([PropSymbolExpr(food_str, x, y, time=current), ~PropSymbolExpr(pacman_str, x, y, time=current)])
 
 #______________________________________________________________________________
 # QUESTION 6
