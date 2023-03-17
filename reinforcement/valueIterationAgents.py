@@ -72,10 +72,16 @@ class ValueIterationAgent(ValueEstimationAgent):
         Iterate for self.iteration amount of times:
         each iteration calculates the value for each state, starting from the terminal state (kind of)
         """
+
+        print("self.iterations:", self.iterations)
         for i in range(self.iterations):
             # calculate value of self.values
             # create temp counter to not overwrite self.values
-            values_copy = util.Counter()
+            values_copy = self.values.copy()
+            print("#################################################################")
+            print("starting iteration", i)
+            #print(self.values, values_copy)
+
             for state in self.mdp.getStates():
                 # if self.mdp.isTerminal(state):
                 #     print("found terminal")
@@ -83,6 +89,7 @@ class ValueIterationAgent(ValueEstimationAgent):
                 #     continue
                 best_value = -float('inf')
 
+                print("starting state loop with state =", state, "\n")
                 for action in self.mdp.getPossibleActions(state):
                     value = self.computeQValueFromValues(state, action)
 
@@ -91,16 +98,11 @@ class ValueIterationAgent(ValueEstimationAgent):
 
                 # if a best value was found, update the relevant state
                 if best_value != -float('inf'):
-                    print(state)
                     values_copy[state] = best_value
-                else:
-                    values_copy[state] = 0
 
-                # self.values[state] = self.computeQValueFromValues(state, self.computeActionFromValues(state))
-                # print(self.getValue(state))
-
-                self.values = values_copy
-
+            print(self.values, values_copy)
+            self.values = values_copy
+            print("self.getValue(", state, ") =", self.getValue(state))
 
     def getValue(self, state):
         """
@@ -117,25 +119,26 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
         Do the T(s,a,s')[R(s,a,s') + yVk] thing for one given action
         """
+
+        print("called QValue |", "state =", state, "action =", action)
         reward = 0
         if self.mdp.isTerminal(state):
             # skip it
             print('found terminal')
             return self.mdp.getReward(state, 'exit', state)
 
+        #print(self.mdp.getTransitionStatesAndProbs(state, action))
         for next_state, probability in self.mdp.getTransitionStatesAndProbs(state, action):
-            # given the possible state and probability, add to reward:
-            # poss_state[1](self.mdp.getReward(poss_state[0] + discount(reward of staying there)
-            #print(probability, self.mdp.getReward(state, action, next_state), self.discount, self.getValue(next_state))
-            print(state, next_state)
-            # if self.mdp.isTerminal(next_state):
-            #     reward += self.mdp.getReward(state, action, next_state)
-            # else:
+
+            #print(action, "next_state =", next_state, "probability =", probability)
+
             state_reward = self.mdp.getReward(state, action, next_state)
-            #print('made it')
-            next_state_reward = self.values[next_state]
+            next_state_reward = self.getValue(next_state)
             parentheses = state_reward + (self.discount * next_state_reward)
+            print("function = ", probability, "(", state_reward, "+ (", self.discount, "*", next_state_reward, "))")
             reward += probability * parentheses
+
+        print("results of QValue:", reward, "\n---------------------------------------------------------------\n")
         return reward
 
     def computeActionFromValues(self, state):
@@ -156,20 +159,26 @@ class ValueIterationAgent(ValueEstimationAgent):
 
         #print(self.mdp.getPossibleActions(state))
 
+        print("starting computeActionFromValue loop,", "state", state)
         for action in self.mdp.getPossibleActions(state):
-            if self.computeQValueFromValues(state, action) > best_value:
+            v = self.computeQValueFromValues(state, action)
+            if v > best_value:
                 best_action = action
-                best_value = self.computeQValueFromValues(state, action)
+                best_value = v
 
+        print("result of computeActionFromValue with state:", state, "->", best_action, best_value, "\n")
         return best_action
 
 
     def getPolicy(self, state):
+        print("called getPolicy")
         return self.computeActionFromValues(state)
 
     def getAction(self, state):
         "Returns the policy at the state (no exploration)."
+        print("called getAction")
         return self.computeActionFromValues(state)
 
     def getQValue(self, state, action):
+        print("Called getQValue")
         return self.computeQValueFromValues(state, action)
