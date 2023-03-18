@@ -188,7 +188,7 @@ class ApproximateQAgent(PacmanQAgent):
         "*** YOUR CODE HERE ***"
         result = 0
         for feat in self.featExtractor.getFeatures(state, action):
-            print(self.getWeights()[feat], self.featExtractor.getFeatures(state, action)[feat])
+            #print(self.getWeights()[feat], self.featExtractor.getFeatures(state, action)[feat])
             result += self.getWeights()[feat] * self.featExtractor.getFeatures(state, action)[feat]
 
         return result
@@ -199,9 +199,14 @@ class ApproximateQAgent(PacmanQAgent):
         """
         "*** YOUR CODE HERE ***"
 
-        difference = reward + self.discount * self.computeValueFromQValues(nextState) - self.getQValue(state, action)
+        difference = reward + self.discount * self.getValue(nextState) - self.getQValue(state, action)
+        # self.weights = self.getWeights()[(state, action)] + self.alpha * difference * self.featExtractor.getFeatures(state, action)[(state, action)]
+
+        for feat in self.featExtractor.getFeatures(state, action):
+            self.weights[feat] += self.alpha * self.featExtractor.getFeatures(state, action)[feat] * difference
+
         #print("weights =", self.getWeights()[(state, action)], "features =", self.featExtractor.getFeatures(state, action)[(state, action)], "difference =", difference, "alpha =", self.alpha)
-        self.weights = self.getWeights()[(state, action)] + self.alpha * difference * self.featExtractor.getFeatures(state, action)[(state, action)]
+
 
 
     def final(self, state):
