@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/untitled/untitled.iml" filepath="$PROJECT_DIR$/untitled/untitled.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/.idea/multiagent.iml" filepath="$PROJECT_DIR$/.idea/multiagent.iml" />
+>>>>>>> fffbbf998f3ab4f618a672b92e58d9ef97ea5b42
     </modules>
   </component>
 </project>
