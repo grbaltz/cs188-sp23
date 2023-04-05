@@ -108,13 +108,10 @@ def joinFactors(factors: List[Factor]):
 
     setsOfConditioned = [set(factor.conditionedVariables()) for factor in factors]
 
-    print(factors)
-    print(setsOfUnconditioned)
-    combinedVarDomains = []
+    print("FACTORS:", factors)
+    combinedVarDomains = {}
     sharedUnconditioned = []
     sharedConditioned = []
-    print("####\nunconditioned:", sharedUnconditioned, "\nconditioned:", sharedConditioned, "\n####")
-
     allVars = []
 
     for first in factors:
@@ -127,8 +124,11 @@ def joinFactors(factors: List[Factor]):
         # print(first.getAllPossibleAssignmentDicts())
         print(first.variables())
 
+        for assDic in first.getAllPossibleAssignmentDicts():
+            print(first.getProbability(assDic))
+
         for var in first.variableDomainsDict():
-            combinedVarDomains = first.variableDomainsDict()[var]
+            combinedVarDomains[var] = first.variableDomainsDict()[var]
 
         for var in first.variables():
             if not allVars.__contains__(var):
@@ -148,7 +148,14 @@ def joinFactors(factors: List[Factor]):
     print("con", sharedConditioned)
     print("varDomains", combinedVarDomains)
 
-    result = Factor.__init__(sharedUnconditioned, sharedConditioned, )
+    result = Factor(sharedUnconditioned, sharedConditioned, combinedVarDomains)
+
+    print("ASSDICS:", result.getAllPossibleAssignmentDicts())
+
+    for assDic in result.getAllPossibleAssignmentDicts():
+        result.setProbability(assDic, )
+
+    print(result)
 
     "*** END YOUR CODE HERE ***"
 
