@@ -103,6 +103,53 @@ def joinFactors(factors: List[Factor]):
 
     "*** YOUR CODE HERE ***"
 
+    # Need to go through the given factors, getting all of the conditioned variables shared between all the factors
+    # and putting them into 1 conditioned list, the rest going in the unconditioned
+
+    setsOfConditioned = [set(factor.conditionedVariables()) for factor in factors]
+
+    print(factors)
+    print(setsOfUnconditioned)
+    combinedVarDomains = []
+    sharedUnconditioned = []
+    sharedConditioned = []
+    print("####\nunconditioned:", sharedUnconditioned, "\nconditioned:", sharedConditioned, "\n####")
+
+    allVars = []
+
+    for first in factors:
+        # print(first.variableDomainsDict())
+        # print(first.getProbability(first.getAllPossibleAssignmentDicts()))
+        print(first)
+        print("varDomain:", first.variableDomainsDict())
+        print("unconditioned:", first.unconditionedVariables())
+        print("conditioned:",first.conditionedVariables())
+        # print(first.getAllPossibleAssignmentDicts())
+        print(first.variables())
+
+        for var in first.variableDomainsDict():
+            combinedVarDomains = first.variableDomainsDict()[var]
+
+        for var in first.variables():
+            if not allVars.__contains__(var):
+                allVars.append(var)
+        for var in first.unconditionedVariables():
+            if not sharedUnconditioned.__contains__(var):
+                sharedUnconditioned.append(var)
+        for var in first.conditionedVariables():
+            if not sharedConditioned.__contains__(var):
+                sharedConditioned.append(var)
+        for unconc in sharedUnconditioned:
+            if sharedConditioned.__contains__(unconc):
+                sharedConditioned.remove(unconc)
+
+    print("all", allVars)
+    print("unc:", sharedUnconditioned)
+    print("con", sharedConditioned)
+    print("varDomains", combinedVarDomains)
+
+    result = Factor.__init__(sharedUnconditioned, sharedConditioned, )
+
     "*** END YOUR CODE HERE ***"
 
 ########### ########### ###########
