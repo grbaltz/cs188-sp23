@@ -61,30 +61,31 @@ def constructBayesNet(gameState: hunters.GameState):
     variableDomainsDict = {}
 
     "*** YOUR CODE HERE ***"
-    variables.append(PAC)
     variables.append(GHOST0)
+    variables.append(PAC)
     variables.append(GHOST1)
+
     variables.append(OBS0)
     variables.append(OBS1)
 
-    edges.append((PAC, OBS0))
-    edges.append((PAC, OBS1))
     edges.append((GHOST0, OBS0))
+    edges.append((PAC, OBS0))
     edges.append((GHOST1, OBS1))
+    edges.append((PAC, OBS1))
 
-    possibleLocations = []
+    # Construct the domain for each variable (a list like)
+    gridValues = []
     for x in range(X_RANGE):
         for y in range(Y_RANGE):
-            possibleLocations.append((x, y))
+            gridValues.append((x, y))
+    variableDomainsDict[GHOST0]  = gridValues
+    variableDomainsDict[GHOST1]  = gridValues
+    variableDomainsDict[PAC]  = gridValues
 
-    variableDomainsDict[PAC] = possibleLocations
-    variableDomainsDict[GHOST0] = possibleLocations
-    variableDomainsDict[GHOST1] = possibleLocations
+    obsMan = range(0, X_RANGE+Y_RANGE+(MAX_NOISE-1))
 
-    possibleObservations = range(0, X_RANGE + Y_RANGE + (MAX_NOISE - 1))
-
-    variableDomainsDict[OBS0] = possibleObservations
-    variableDomainsDict[OBS1] = possibleObservations
+    variableDomainsDict[OBS0]  = obsMan
+    variableDomainsDict[OBS1]  = obsMan
     "*** END YOUR CODE HERE ***"
 
     net = bn.constructEmptyBayesNet(variables, edges, variableDomainsDict)
@@ -104,7 +105,7 @@ def inferenceByEnumeration(bayesNet: bn, queryVariables: List[str], evidenceDict
                     the inference query.
     evidenceDict:   An assignment dict {variable : value} for the
                     variables which are presented as evidence
-                    (conditioned) in the inference query. 
+                    (conditioned) in the inference query.
     """
     callTrackingList = []
     joinFactorsByVariable = joinFactorsByVariableWithCallTracking(callTrackingList)
@@ -134,7 +135,7 @@ def inferenceByEnumeration(bayesNet: bn, queryVariables: List[str], evidenceDict
     fullJointOverQueryAndEvidence = incrementallyMarginalizedJoint
 
     # normalize so that the probability sums to one
-    # the input factor contains only the query variables and the evidence variables, 
+    # the input factor contains only the query variables and the evidence variables,
     # both as unconditioned variables
     queryConditionedOnEvidence = normalize(fullJointOverQueryAndEvidence)
     # now the factor is conditioned on the evidence variables
@@ -160,19 +161,19 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
         to eliminationOrder.  See inferenceByEnumeration for an example on
         how to use these functions.
 
-        You need to use joinFactorsByVariable to join all of the factors 
-        that contain a variable in order for the autograder to 
-        recognize that you performed the correct interleaving of 
+        You need to use joinFactorsByVariable to join all of the factors
+        that contain a variable in order for the autograder to
+        recognize that you performed the correct interleaving of
         joins and eliminates.
 
-        If a factor that you are about to eliminate a variable from has 
-        only one unconditioned variable, you should not eliminate it 
-        and instead just discard the factor.  This is since the 
-        result of the eliminate would be 1 (you marginalize 
-        all of the unconditioned variables), but it is not a 
+        If a factor that you are about to eliminate a variable from has
+        only one unconditioned variable, you should not eliminate it
+        and instead just discard the factor.  This is since the
+        result of the eliminate would be 1 (you marginalize
+        all of the unconditioned variables), but it is not a
         valid factor.  So this simplifies using the result of eliminate.
 
-        The sum of the probabilities should sum to one (so that it is a true 
+        The sum of the probabilities should sum to one (so that it is a true
         conditional probability, conditioned on the evidence).
 
         bayesNet:         The Bayes Net on which we are making a query.
@@ -180,12 +181,12 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
                           in the inference query.
         evidenceDict:     An assignment dict {variable : value} for the
                           variables which are presented as evidence
-                          (conditioned) in the inference query. 
+                          (conditioned) in the inference query.
         eliminationOrder: The order to eliminate the variables in.
 
-        Hint: BayesNet.getAllCPTsWithEvidence will return all the Conditional 
-        Probability Tables even if an empty dict (or None) is passed in for 
-        evidenceDict. In this case it will not specialize any variable domains 
+        Hint: BayesNet.getAllCPTsWithEvidence will return all the Conditional
+        Probability Tables even if an empty dict (or None) is passed in for
+        evidenceDict. In this case it will not specialize any variable domains
         in the CPTs.
 
         Useful functions:
@@ -200,12 +201,66 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
         joinFactorsByVariable = joinFactorsByVariableWithCallTracking(callTrackingList)
         eliminate             = eliminateWithCallTracking(callTrackingList)
         if eliminationOrder is None: # set an arbitrary elimination order if None given
-            eliminationVariables = bayesNet.variablesSet() - set(queryVariables) -\
+            eliminationVariables = bayesNet.variablesSet() - set(queryVariables) - \
                                    set(evidenceDict.keys())
             eliminationOrder = sorted(list(eliminationVariables))
 
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        #callTrackingList = []
+        #joinFactorsByVariable = joinFactorsByVariableWithCallTracking(callTrackingList)
+        #eliminate = eliminateWithCallTracking(callTrackingList)
+
+        # initialize return variables and the variables to eliminate
+        evidenceVariablesSet = set(evidenceDict.keys())
+        queryVariablesSet = set(queryVariables)
+        eliminationVariables = (bayesNet.variablesSet() - evidenceVariablesSet) - queryVariablesSet
+
+        # grab all factors where we know the evidence variables (to reduce the size of the tables)
+        currentFactorsList = bayesNet.getAllCPTsWithEvidence(evidenceDict)
+
+        # join all factors by variable
+        #for joinVariable in bayesNet.variablesSet():
+        #    currentFactorsList, joinedFactor = joinFactorsByVariable(currentFactorsList, joinVariable)
+        #    currentFactorsList.append(joinedFactor)
+
+
+        for elem in eliminationOrder:
+            #join on elem creating new factor which is the Sum all the factors that have the elimination elem
+            #thus eliminating the factors with elem we just used
+
+            #use the new factors to recurse and do again
+
+            #if one conditional other
+
+            #if not query and evidence
+            print(elem)
+            print(queryVariables)
+            print(evidenceDict)
+            if elem not in queryVariables and elem not in evidenceDict:
+                if len(queryVariables) != 1:
+                    currentFactorsList, joinFactByVar = joinFactorsByVariable(currentFactorsList, elem)
+                    elimFactByVar = eliminate(joinFactByVar, elem)
+                else:
+                    print("else")
+
+        # currentFactorsList should contain the connected components of the graph now as factors, must join the connected components
+        fullJoint = joinFactors(currentFactorsList)
+
+        # marginalize all variables that aren't query or evidence
+        incrementallyMarginalizedJoint = fullJoint
+        for eliminationVariable in eliminationVariables:
+            incrementallyMarginalizedJoint = eliminate(incrementallyMarginalizedJoint, eliminationVariable)
+
+        fullJointOverQueryAndEvidence = incrementallyMarginalizedJoint
+
+        # normalize so that the probability sums to one
+        # the input factor contains only the query variables and the evidence variables,
+        # both as unconditioned variables
+        result = normalize(fullJointOverQueryAndEvidence)
+        # now the factor is conditioned on the evidence variables
+        return result
+
+        #raiseNotDefined()
         "*** END YOUR CODE HERE ***"
 
 
@@ -231,42 +286,42 @@ def sampleFromFactorRandomSource(randomSource=None):
 
         Useful for inferenceByLikelihoodWeightingSampling
 
-        Returns an assignmentDict that contains the conditionedAssignments but 
-        also a random assignment of the unconditioned variables given their 
+        Returns an assignmentDict that contains the conditionedAssignments but
+        also a random assignment of the unconditioned variables given their
         probability.
         """
         if conditionedAssignments is None and len(factor.conditionedVariables()) > 0:
             raise ValueError("Conditioned assignments must be provided since \n" +
-                            "this factor has conditionedVariables: " + "\n" +
-                            str(factor.conditionedVariables()))
+                             "this factor has conditionedVariables: " + "\n" +
+                             str(factor.conditionedVariables()))
 
         elif conditionedAssignments is not None:
             conditionedVariables = set([var for var in conditionedAssignments.keys()])
 
             if not conditionedVariables.issuperset(set(factor.conditionedVariables())):
                 raise ValueError("Factor's conditioned variables need to be a subset of the \n"
-                                    + "conditioned assignments passed in. \n" + \
-                                "conditionedVariables: " + str(conditionedVariables) + "\n" +
-                                "factor.conditionedVariables: " + str(set(factor.conditionedVariables())))
+                                 + "conditioned assignments passed in. \n" + \
+                                 "conditionedVariables: " + str(conditionedVariables) + "\n" +
+                                 "factor.conditionedVariables: " + str(set(factor.conditionedVariables())))
 
             # Reduce the domains of the variables that have been
-            # conditioned upon for this factor 
+            # conditioned upon for this factor
             newVariableDomainsDict = factor.variableDomainsDict()
             for (var, assignment) in conditionedAssignments.items():
                 newVariableDomainsDict[var] = [assignment]
 
             # Get the (hopefully) smaller conditional probability table
-            # for this variable 
+            # for this variable
             CPT = factor.specializeVariableDomains(newVariableDomainsDict)
         else:
             CPT = factor
-        
+
         # Get the probability of each row of the table (along with the
         # assignmentDict that it corresponds to)
         assignmentDicts = sorted([assignmentDict for assignmentDict in CPT.getAllPossibleAssignmentDicts()])
         assignmentDictProbabilities = [CPT.getProbability(assignmentDict) for assignmentDict in assignmentDicts]
 
-        # calculate total probability in the factor and index each row by the 
+        # calculate total probability in the factor and index each row by the
         # cumulative sum of probability up to and including that row
         currentProbability = 0.0
         probabilityRange = []
@@ -276,7 +331,7 @@ def sampleFromFactorRandomSource(randomSource=None):
 
         totalProbability = probabilityRange[-1]
 
-        # sample an assignment with probability equal to the probability in the row 
+        # sample an assignment with probability equal to the probability in the row
         # for that assignment in the factor
         pick = randomSource.uniform(0.0, totalProbability)
         for i in range(len(assignmentDicts)):
@@ -318,7 +373,7 @@ class DiscreteDistribution(dict):
         Return the sum of values for all keys.
         """
         return float(sum(self.values()))
-    
+
     ########### ########### ###########
     ########### QUESTION 5a ###########
     ########### ########### ###########
@@ -408,7 +463,7 @@ class InferenceModule:
             dist[jail] = 1.0
             return dist
         pacmanSuccessorStates = game.Actions.getLegalNeighbors(pacmanPosition, \
-                gameState.getWalls())  # Positions Pacman can move to
+                                                               gameState.getWalls())  # Positions Pacman can move to
         if ghostPosition in pacmanSuccessorStates:  # Ghost could get caught
             mult = 1.0 / float(len(pacmanSuccessorStates))
             dist[jail] = mult
@@ -436,7 +491,7 @@ class InferenceModule:
         if agent == None:
             agent = self.ghostAgent
         return self.getPositionDistributionHelper(gameState, pos, index, agent)
-    
+
     ########### ########### ###########
     ########### QUESTION 5b ###########
     ########### ########### ###########
@@ -538,7 +593,7 @@ class ExactInference(InferenceModule):
         for p in self.legalPositions:
             self.beliefs[p] = 1.0
         self.beliefs.normalize()
-    
+
     ########### ########### ###########
     ########### QUESTION 6  ###########
     ########### ########### ###########
@@ -562,7 +617,7 @@ class ExactInference(InferenceModule):
         raiseNotDefined()
         "*** END YOUR CODE HERE ***"
         self.beliefs.normalize()
-    
+
     ########### ########### ###########
     ########### QUESTION 7  ###########
     ########### ########### ###########
@@ -594,7 +649,7 @@ class ParticleFilter(InferenceModule):
 
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles
-    
+
     ########### ########### ###########
     ########### QUESTION 9  ###########
     ########### ########### ###########
@@ -623,7 +678,7 @@ class ParticleFilter(InferenceModule):
         "*** YOUR CODE HERE ***"
         raiseNotDefined()
         "*** END YOUR CODE HERE ***"
-    
+
     ########### ########### ###########
     ########### QUESTION 10 ###########
     ########### ########### ###########
@@ -643,7 +698,7 @@ class ParticleFilter(InferenceModule):
         "*** YOUR CODE HERE ***"
         raiseNotDefined()
         "*** END YOUR CODE HERE ***"
-    
+
     ########### ########### ###########
     ########### QUESTION 11 ###########
     ########### ########### ###########
