@@ -205,60 +205,24 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
             eliminationOrder = sorted(list(eliminationVariables))
 
         "*** YOUR CODE HERE ***"
-        #callTrackingList = []
-        #joinFactorsByVariable = joinFactorsByVariableWithCallTracking(callTrackingList)
-        #eliminate = eliminateWithCallTracking(callTrackingList)
+        print("#############################################################")
+        print("evidenceDict", evidenceDict)
 
-        # initialize return variables and the variables to eliminate
-        evidenceVariablesSet = set(evidenceDict.keys())
-        queryVariablesSet = set(queryVariables)
-        eliminationVariables = (bayesNet.variablesSet() - evidenceVariablesSet) - queryVariablesSet
+        nonElimFactors = bayesNet.getAllCPTsWithEvidence(evidenceDict)
 
-        # grab all factors where we know the evidence variables (to reduce the size of the tables)
-        currentFactorsList = bayesNet.getAllCPTsWithEvidence(evidenceDict)
-
-        # join all factors by variable
-        #for joinVariable in bayesNet.variablesSet():
-        #    currentFactorsList, joinedFactor = joinFactorsByVariable(currentFactorsList, joinVariable)
-        #    currentFactorsList.append(joinedFactor)
-
+        result = None
 
         for elem in eliminationOrder:
-            #join on elem creating new factor which is the Sum all the factors that have the elimination elem
-            #thus eliminating the factors with elem we just used
+            nonElimFactors, newFactor = joinFactorsByVariable(nonElimFactors, elem)
+            print("nonElimFactors", nonElimFactors, "\nnewFactor", newFactor, "elem", elem)
 
-            #use the new factors to recurse and do again
+            if len(newFactor.unconditionedVariables()) > 1:
+                eliminated = eliminate(newFactor, elem)
+                nonElimFactors.append(eliminated)
 
-            #if one conditional other
+            result = joinFactors(nonElimFactors)
 
-            #if not query and evidence
-            print(elem)
-            print(queryVariables)
-            print(evidenceDict)
-            if elem not in queryVariables and elem not in evidenceDict:
-                if len(queryVariables) != 1:
-                    currentFactorsList, joinFactByVar = joinFactorsByVariable(currentFactorsList, elem)
-                    elimFactByVar = eliminate(joinFactByVar, elem)
-                else:
-                    print("else")
-
-        # currentFactorsList should contain the connected components of the graph now as factors, must join the connected components
-        fullJoint = joinFactors(currentFactorsList)
-
-        # marginalize all variables that aren't query or evidence
-        incrementallyMarginalizedJoint = fullJoint
-        for eliminationVariable in eliminationVariables:
-            incrementallyMarginalizedJoint = eliminate(incrementallyMarginalizedJoint, eliminationVariable)
-
-        fullJointOverQueryAndEvidence = incrementallyMarginalizedJoint
-
-        # normalize so that the probability sums to one
-        # the input factor contains only the query variables and the evidence variables,
-        # both as unconditioned variables
-        result = normalize(fullJointOverQueryAndEvidence)
-        # now the factor is conditioned on the evidence variables
-        return result
-
+        return normalize(result)
         #raiseNotDefined()
         "*** END YOUR CODE HERE ***"
 
@@ -400,7 +364,26 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        dist = DiscreteDistribution()
+
+        for key in self.keys():
+            print("key", key, "value", self.get(key))
+            val = self.get(key)
+            if self.total() != 0:
+                #self.update(key, val / self.total())
+                dist[key] = val / self.total()
+            else:
+                #self.update(key, val)
+                dist[key] = val
+
+        print(dist)
+
+        if dist.total() == 0:
+            return
+
+        self.update(dist)
+
         "*** END YOUR CODE HERE ***"
 
     def sample(self):
@@ -425,7 +408,10 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        rand = random.random(range(self.total))
+
+
+
         "*** END YOUR CODE HERE ***"
 
 
@@ -500,7 +486,9 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+
+
         "*** END YOUR CODE HERE ***"
 
     def setGhostPosition(self, gameState, ghostPosition, index):
