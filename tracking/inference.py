@@ -496,7 +496,7 @@ class InferenceModule:
         if noisyDistance == None:
             return 0.0
 
-        print(busters.getObservationProbability(noisyDistance, manhattanDistance(pacmanPosition, ghostPosition)))
+        # print(busters.getObservationProbability(noisyDistance, manhattanDistance(pacmanPosition, ghostPosition)))
         return busters.getObservationProbability(noisyDistance, manhattanDistance(pacmanPosition, ghostPosition))
 
         "*** END YOUR CODE HERE ***"
@@ -634,7 +634,16 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        dist = DiscreteDistribution()
+
+        # loop over every old position, adding it to dist and its probability
+        for oldPos in self.allPositions:
+            tempDist = self.getPositionDistribution(gameState, oldPos)
+
+            for pos in tempDist.keys():
+                dist[pos] += tempDist[pos] * self.beliefs[oldPos]
+
+        self.beliefs = dist
         "*** END YOUR CODE HERE ***"
 
     def getBeliefDistribution(self):
