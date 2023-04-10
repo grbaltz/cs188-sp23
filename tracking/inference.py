@@ -200,14 +200,30 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
         joinFactorsByVariable = joinFactorsByVariableWithCallTracking(callTrackingList)
         eliminate             = eliminateWithCallTracking(callTrackingList)
         if eliminationOrder is None: # set an arbitrary elimination order if None given
-            eliminationVariables = bayesNet.variablesSet() - set(queryVariables) -\
+            eliminationVariables = bayesNet.variablesSet() - set(queryVariables) - \
                                    set(evidenceDict.keys())
             eliminationOrder = sorted(list(eliminationVariables))
 
         "*** YOUR CODE HERE ***"
+        print("#############################################################")
+        print("evidenceDict", evidenceDict)
 
+        nonElimFactors = bayesNet.getAllCPTsWithEvidence(evidenceDict)
 
-        raiseNotDefined()
+        result = None
+
+        for elem in eliminationOrder:
+            nonElimFactors, newFactor = joinFactorsByVariable(nonElimFactors, elem)
+            print("nonElimFactors", nonElimFactors, "\nnewFactor", newFactor, "elem", elem)
+
+            if len(newFactor.unconditionedVariables()) > 1:
+                eliminated = eliminate(newFactor, elem)
+                nonElimFactors.append(eliminated)
+
+            result = joinFactors(nonElimFactors)
+
+        return normalize(result)
+        #raiseNotDefined()
         "*** END YOUR CODE HERE ***"
 
 
@@ -239,17 +255,17 @@ def sampleFromFactorRandomSource(randomSource=None):
         """
         if conditionedAssignments is None and len(factor.conditionedVariables()) > 0:
             raise ValueError("Conditioned assignments must be provided since \n" +
-                            "this factor has conditionedVariables: " + "\n" +
-                            str(factor.conditionedVariables()))
+                             "this factor has conditionedVariables: " + "\n" +
+                             str(factor.conditionedVariables()))
 
         elif conditionedAssignments is not None:
             conditionedVariables = set([var for var in conditionedAssignments.keys()])
 
             if not conditionedVariables.issuperset(set(factor.conditionedVariables())):
                 raise ValueError("Factor's conditioned variables need to be a subset of the \n"
-                                    + "conditioned assignments passed in. \n" + \
-                                "conditionedVariables: " + str(conditionedVariables) + "\n" +
-                                "factor.conditionedVariables: " + str(set(factor.conditionedVariables())))
+                                 + "conditioned assignments passed in. \n" + \
+                                 "conditionedVariables: " + str(conditionedVariables) + "\n" +
+                                 "factor.conditionedVariables: " + str(set(factor.conditionedVariables())))
 
             # Reduce the domains of the variables that have been
             # conditioned upon for this factor
@@ -348,7 +364,26 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        dist = DiscreteDistribution()
+
+        for key in self.keys():
+            print("key", key, "value", self.get(key))
+            val = self.get(key)
+            if self.total() > 0:
+                #self.update(key, val / self.total())
+                dist[key] = val / self.total()
+            else:
+                #self.update(key, val)
+                dist[key] = val
+
+        print(dist)
+
+        if dist.total() == 0:
+            return
+
+        self.update(dist)
+
         "*** END YOUR CODE HERE ***"
 
     def sample(self):
@@ -373,7 +408,10 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        rand = random.choices(list(self.keys()), list(self.values()))
+
+        return rand[0]
+
         "*** END YOUR CODE HERE ***"
 
 
@@ -410,7 +448,7 @@ class InferenceModule:
             dist[jail] = 1.0
             return dist
         pacmanSuccessorStates = game.Actions.getLegalNeighbors(pacmanPosition, \
-                gameState.getWalls())  # Positions Pacman can move to
+                                                               gameState.getWalls())  # Positions Pacman can move to
         if ghostPosition in pacmanSuccessorStates:  # Ghost could get caught
             mult = 1.0 / float(len(pacmanSuccessorStates))
             dist[jail] = mult
@@ -448,7 +486,19 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        if ghostPosition == jailPosition:
+            if noisyDistance == None:
+                return 1.0
+            else:
+                return 0.0
+
+        if noisyDistance == None:
+            return 0.0
+
+        print(busters.getObservationProbability(noisyDistance, manhattanDistance(pacmanPosition, ghostPosition)))
+        return busters.getObservationProbability(noisyDistance, manhattanDistance(pacmanPosition, ghostPosition))
+
         "*** END YOUR CODE HERE ***"
 
     def setGhostPosition(self, gameState, ghostPosition, index):
@@ -561,10 +611,12 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
+
         pacPos = gameState.getPacmanPosition()
         jailPos = self.getJailPosition()
         for pos in self.allPositions:
             self.beliefs[pos] *= self.getObservationProb(observation, pacPos, pos, jailPos)
+
         "*** END YOUR CODE HERE ***"
         self.beliefs.normalize()
 
