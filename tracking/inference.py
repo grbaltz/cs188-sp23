@@ -379,10 +379,8 @@ class DiscreteDistribution(dict):
 
         print(dist)
 
-        if dist.total() == 0:
-            return
-
-        self.update(dist)
+        if self.total() != 0:
+            self.update(dist)
 
         "*** END YOUR CODE HERE ***"
 
@@ -675,7 +673,20 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # print(self.numParticles)
+
+        # for particle in range(self.numParticles):
+        #     counter = 0
+        #     for pos in range(len(self.legalPositions)):
+        #         #print(len(self.legalPositions) % self.numParticles)
+        #         for i in range(len(self.legalPositions) % self.numParticles):
+        #             self.particles.append(self.legalPositions[counter])
+        #         counter += 1
+
+        for particle in range(self.numParticles):
+            self.particles.append(self.legalPositions[particle % len(self.legalPositions)])
+
+        # print(self.particles)
         "*** END YOUR CODE HERE ***"
 
     def getBeliefDistribution(self):
@@ -687,7 +698,16 @@ class ParticleFilter(InferenceModule):
         This function should return a normalized distribution.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # Basically just need to create a distribution for the particles in self.particles
+
+        result = DiscreteDistribution()
+
+        for par in self.particles:
+            result[par] += 1
+
+        result.normalize()
+        return result
+
         "*** END YOUR CODE HERE ***"
 
     ########### ########### ###########
