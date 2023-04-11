@@ -205,8 +205,8 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
             eliminationOrder = sorted(list(eliminationVariables))
 
         "*** YOUR CODE HERE ***"
-        print("#############################################################")
-        print("evidenceDict", evidenceDict)
+        # print("#############################################################")
+        # print("evidenceDict", evidenceDict)
 
         nonElimFactors = bayesNet.getAllCPTsWithEvidence(evidenceDict)
 
@@ -214,7 +214,7 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
 
         for elem in eliminationOrder:
             nonElimFactors, newFactor = joinFactorsByVariable(nonElimFactors, elem)
-            print("nonElimFactors", nonElimFactors, "\nnewFactor", newFactor, "elem", elem)
+            # print("nonElimFactors", nonElimFactors, "\nnewFactor", newFactor, "elem", elem)
 
             if len(newFactor.unconditionedVariables()) > 1:
                 eliminated = eliminate(newFactor, elem)
@@ -368,7 +368,7 @@ class DiscreteDistribution(dict):
         dist = DiscreteDistribution()
 
         for key in self.keys():
-            print("key", key, "value", self.get(key))
+            # print("key", key, "value", self.get(key))
             val = self.get(key)
             if self.total() > 0:
                 #self.update(key, val / self.total())
@@ -377,7 +377,7 @@ class DiscreteDistribution(dict):
                 #self.update(key, val)
                 dist[key] = val
 
-        print(dist)
+        # print(dist)
 
         if self.total() != 0:
             self.update(dist)
@@ -763,5 +763,9 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        result = []
+        for particle in self.particles:
+            result.append(self.getPositionDistribution(gameState, particle).sample())
+
+        self.particles = result
         "*** END YOUR CODE HERE ***"
