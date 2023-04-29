@@ -154,6 +154,14 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.batch_size = 100
+        self.learning_rate = 0.75
+
+        self.m = nn.Parameter(784, 200)
+        self.b = nn.Parameter(1, 200)
+        self.m2 = nn.Parameter(200, 10)
+        self.b2 = nn.Parameter(1, 10)
+
 
     def run(self, x):
         """
@@ -170,6 +178,14 @@ class DigitClassificationModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        # call linear() on x and m, then add the bias to it
+        xm = nn.AddBias(nn.Linear(x, self.m), self.b)
+        xm_relu = nn.ReLU(xm)
+
+        # call addBias on Linear of xm and m2, then addBias bias
+        xm2 = nn.AddBias(nn.Linear(xm_relu, self.m2), self.b2)
+
+        return xm2
 
     def get_loss(self, x, y):
         """
@@ -185,12 +201,29 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SoftmaxLoss(self.run(x), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        errors = 100000
+        while errors > 0:
+            errors = 0
+            for x, y in dataset.iterate_once(self.batch_size):
+                loss = self.get_loss(x, y)
+                grads = nn.gradients(loss, [self.m, self.m2, self.b, self.b2])
+                self.m.update(grads[0], -self.learning_rate)
+                self.m2.update(grads[1], -self.learning_rate)
+                self.b.update(grads[2], -self.learning_rate)
+                self.b2.update(grads[3], -self.learning_rate)
+
+            print(dataset.get_validation_accuracy())
+            if dataset.get_validation_accuracy() < .98:
+                errors += 1
+
+
 
 class LanguageIDModel(object):
     """
@@ -210,6 +243,16 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.batch_size = 10
+        self.learning_rate = 0.005
+        self.hidden_layer_size = 300
+
+        self.m = nn.Parameter(self.num_chars, self.hidden_layer_size)
+        self.b = nn.Parameter(self.hidden_layer_size, 5)
+        self.h = nn.Parameter(self.hidden_layer_size, self.hidden_layer_size)
+        self.bias = nn.Parameter(1, self.hidden_layer_size)
+        self.end_bias = nn.Parameter(1, 5)
+
 
     def run(self, xs):
         """
@@ -241,6 +284,27 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        # layer 1
+        curr = nn.Linear(xs[0], self.m)
+        curr = nn.ReLU(nn.AddBias(curr, self.bias))
+
+        # layer 2
+        curr2 = nn.Linear(curr, self.h)
+        curr2 = nn.ReLU(nn.AddBias(curr2, self.bias))
+
+        prog = curr2
+
+        for i in range(1, len(xs)):
+
+            prog = nn.Add(nn.Linear(xs[i], self.m), nn.Linear(prog, self.h))
+            prog = nn.ReLU(nn.AddBias(prog, self.bias))
+            prog = nn.Linear(prog, self.h)
+            prog = nn.ReLU(nn.AddBias(prog, self.bias))
+
+            #curr = nn.Add(nn.Linear(xs[i], self.m), nn.Linear(curr, self.h))
+
+        final = nn.AddBias(nn.Linear(prog, self.b), self.end_bias)
+        return final
 
     def get_loss(self, xs, y):
         """
@@ -257,9 +321,23 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SoftmaxLoss(self.run(xs), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        errors = 100000
+        while errors > 0:
+            errors = 0
+            for x, y in dataset.iterate_once(self.batch_size):
+                loss = self.get_loss(x, y)
+                grads = nn.gradients(loss, [self.m, self.b, self.h])
+                self.m.update(grads[0], -self.learning_rate)
+                self.b.update(grads[1], -self.learning_rate)
+                self.h.update(grads[2], -self.learning_rate)
+
+            #print(dataset.get_validation_accuracy())
+            if dataset.get_validation_accuracy() < .86:
+                errors += 1
