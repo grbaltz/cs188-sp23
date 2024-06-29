@@ -19,4 +19,15 @@ Second, I created logic planning methods to help the Pac-Man decide what state i
 Third, I designed evaluation functions to determine the best possible routes for Pac-Man to take to meet each of his criteria. This was the first true evidence of machine learning in application as we had to 
 determine how to score each "search" based on features such as quickest time, most pellets, etc.
 
-Fourth,
+Fourth, I implemented reinforcement learning through the given QLearningAgent. This is how Pac-Man gets the legal actions and values of its state, determines which action to choose, and repeats until finished. 
+This is what was fed into the evaluation functions and resulted in a score.
+
+Fifth, I created the implementation for the ghosts, utilizing inference in Bayes Nets and Discrete Distributions to govern their actions.
+
+Finally, the full project (and course) was finished with creating a Perceptron model, a Regression model, and a DigitClassificationModel to take the core functionality of the Pac-Man solver and apply it to 
+real-world data such as MNIST. 
+
+# Takeaways
+
+After having finished the course, I am now comfortable with concepts in machine learning such as Reinforcement Learning and Perceptrons as such concepts are what allowed me to create a Pac-Man solver. Since, 
+I have applied these concepts in CS 189 to further my understanding of machine learning with Neural Networks and SVDs. 
