@@ -1,10 +1,10 @@
-### CS 188 - Intro to Machine Learning (Spring 2023)
+# CS 188 - Intro to Machine Learning (Spring 2023)
 
 Garrett Baltz
 
 ## Project - Pac-Man
 
-# Summary
+### Summary
 
 Throughout the course, I was tasked with slowly creating a solver for the infamous Pac-Man game utilizing machine learning. 
 
@@ -27,7 +27,7 @@ Fifth, I created the implementation for the ghosts, utilizing inference in Bayes
 Finally, the full project (and course) was finished with creating a Perceptron model, a Regression model, and a DigitClassificationModel to take the core functionality of the Pac-Man solver and apply it to 
 real-world data such as MNIST. 
 
-# Takeaways
+### Takeaways
 
 After having finished the course, I am now comfortable with concepts in machine learning such as Reinforcement Learning and Perceptrons as such concepts are what allowed me to create a Pac-Man solver. Since, 
 I have applied these concepts in CS 189 to further my understanding of machine learning with Neural Networks and SVDs. 
